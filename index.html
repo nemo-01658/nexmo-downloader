@@ -1,1 +1,200 @@
 
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEXMO Downloader — Real Download</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body {
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  position:relative;
+  background:url('https://images.pexels.com/photos/34751603/pexels-photo-34751603.jpeg') no-repeat center center fixed;
+  background-size:cover;
+  color:#fff;
+}
+.glass {backdrop-filter:blur(6px);background:rgba(255,255,255,0.06);}
+.card-gradient {background:linear-gradient(135deg, rgba(99,102,241,0.085), rgba(34,197,94,0.03));}
+#stars {position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+.nexmo-animated {font-size:50px;font-weight:900;text-transform:uppercase;letter-spacing:4px;background:linear-gradient(90deg,#6d28d9,#22c55e,#0ea5e9);background-size:300% 300%;-webkit-background-clip:text;color:transparent;animation:glowText 6s ease infinite, moveBG 6s linear infinite;text-shadow:0 0 20px rgba(255,255,255,0.35);}
+@keyframes glowText {0%{text-shadow:0 0 10px rgba(255,255,255,0.35);}50%{text-shadow:0 0 25px rgba(255,255,255,0.9);}100%{text-shadow:0 0 10px rgba(255,255,255,0.35);}}
+@keyframes moveBG {0%{background-position:0% 50%;}100%{background-position:100% 50%;}}
+#loadingScreen {position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;justify-content:center;align-items:center;flex-direction:column;z-index:50;transition:opacity 0.5s ease;text-align:center;}
+.loader-title {font-size:60px;font-weight:900;text-transform:uppercase;background:linear-gradient(90deg,#22c55e,#0ea5e9);-webkit-background-clip:text;color:transparent;text-shadow:0 0 20px rgba(34,197,94,0.8),0 0 30px rgba(14,165,233,0.8);margin-bottom:30px;}
+.loader-dots {display:flex;gap:15px;margin-bottom:20px;}
+.loader-dots span {width:15px;height:15px;background:linear-gradient(135deg,#22c55e,#0ea5e9);border-radius:50%;animation:bounce 1s infinite ease-in-out;}
+.loader-dots span:nth-child(1){animation-delay:0s;} .loader-dots span:nth-child(2){animation-delay:0.2s;} .loader-dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes bounce {0%,80%,100%{transform:scale(0.3);opacity:0.6;}40%{transform:scale(1);opacity:1;}}
+.typing-text {font-size:28px;font-weight:bold;color:#fff;border-right:3px solid rgba(255,255,255,0.75);white-space:nowrap;overflow:hidden;width:0;animation:typing 2.5s steps(30) forwards, blink 0.75s step-end infinite;margin-top:10px;text-shadow:0 0 10px rgba(255,255,255,0.7);}
+@keyframes typing {from{width:0;}to{width:300px;}}
+@keyframes blink {50%{border-color:transparent;}}
+</style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div id="loadingScreen">
+  <h1 class="loader-title">NEXMO DOWNLOADER</h1>
+  <div class="loader-dots"><span></span><span></span><span></span></div>
+  <div class="typing-text">NEXMO | DownloaderAnimated</div>
+</div>
+
+<canvas id="stars"></canvas>
+
+<main class="min-h-screen flex items-center justify-center p-6 relative z-10 opacity-0" id="mainContent">
+  <section class="w-full max-w-3xl">
+    <div class="text-center mb-6">
+      <h1 class="nexmo-animated">NEXMO DOWNLOADER</h1>
+      <p class="text-sm text-gray-100 mt-1">Paste a YouTube / TikTok / Facebook URL and choose format</p>
+    </div>
+
+    <div class="glass card-gradient p-6 rounded-2xl shadow-xl border border-gray-800 relative z-10">
+      <form id="downloadForm" class="space-y-4">
+        <label class="block text-sm text-gray-000">Video / Audio URL</label>
+        <div class="flex gap-3">
+          <input id="urlInput" type="url" required placeholder="https://youtube.com/watch?v=..." class="flex-1 px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          <button id="pasteBtn" type="button" class="px-4 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white">Paste</button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-sm text-gray-100">Format</label>
+            <select id="format" class="w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700">
+              <option value="mp4">MP4 (Video)</option>
+              <option value="mp3">MP3 (Audio)</option>
+              <option value="webm">WEBM (Video)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-100">Quality</label>
+            <select id="quality" class="w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700">
+              <option value="best">Best available</option>
+              <option value="720">720p</option>
+              <option value="480">480p</option>
+              <option value="360">360p</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-100">Watermark</label>
+            <select id="watermark" class="w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700">
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex gap-3 items-center">
+          <button id="downloadBtn" type="submit" class="flex-1 px-4 py-3 rounded-lg bg-green-500 hover:bg-green-400 text-black font-semibold">Generate Download</button>
+          <button id="previewBtn" type="button" class="px-4 py-3 rounded-lg bg-gray-800 border border-gray-700">Preview</button>
+        </div>
+
+        <div id="resultArea" class="hidden mt-3 p-3 rounded-lg bg-gray-900 border border-gray-800"></div>
+
+        <p class="text-xs text-gray-300">Note : Enter a valid video URL to download your video quickly!</p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<script>
+// Loading Screen
+window.addEventListener('load', ()=>{
+  setTimeout(()=>{
+    document.getElementById('loadingScreen').style.opacity='0';
+    document.getElementById('mainContent').classList.remove('opacity-0');
+    setTimeout(()=>{document.getElementById('loadingScreen').style.display='none';},500);
+  },2000);
+});
+
+const urlInput=document.getElementById('urlInput');
+const pasteBtn=document.getElementById('pasteBtn');
+const downloadForm=document.getElementById('downloadForm');
+const resultArea=document.getElementById('resultArea');
+const downloadBtn=document.getElementById('downloadBtn');
+const previewBtn=document.getElementById('previewBtn');
+
+pasteBtn.addEventListener('click',async()=>{try{urlInput.value=await navigator.clipboard.readText();}catch{alert('Clipboard blocked. Paste manually.');}});
+
+previewBtn.addEventListener('click',()=>{
+  const url=urlInput.value.trim();
+  if(!url)return alert('Enter a URL first');
+  if(/youtube|youtu\.be/.test(url)){
+    const idMatch=url.match(/[?&]v=([^&]+)/)||url.match(/youtu\.be\/(.+)/);
+    if(idMatch){
+      resultArea.innerHTML=`<iframe class="w-full h-48 rounded" src="https://www.youtube.com/embed/${idMatch[1]}" allowfullscreen></iframe>`;
+      resultArea.classList.remove('hidden'); return;
+    }
+  }
+  alert('Preview not available.');
+});
+
+// ✅ Real Download using Apify Actor
+downloadForm.addEventListener('submit', async(e)=>{
+  e.preventDefault();
+  const url=urlInput.value.trim();
+  const format=document.getElementById('format').value;
+
+  if(!url) return alert('Please enter a URL');
+
+  downloadBtn.innerText='Generating...';
+  downloadBtn.disabled=true;
+
+  try{
+    // Call Apify actor run (replace token and actorId with your own)
+    const token='apify_api_ogOr9SWW4koLYKdfwYMZoQOeKT4Oyc1edw0J';
+    const actorId='XreePuDv2G90j4b0A';
+    const input={url:url,format:format};
+    const runResp=await fetch(`https://api.apify.com/v2/acts/${actorId}/runs?token=${token}`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({input})
+    });
+    const runData=await runResp.json();
+    const runId=runData.id;
+
+    // Wait for result (poll)
+    let finished=false;
+    let resultUrl='';
+    while(!finished){
+      await new Promise(r=>setTimeout(r,3000));
+      const statusResp=await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${token}`);
+      const statusData=await statusResp.json();
+      if(statusData.status==='SUCCEEDED'){finished=true; resultUrl=statusData.defaultDataset.items[0].url;}
+      if(statusData.status==='FAILED'){finished=true; alert('Download failed'); downloadBtn.innerText='Generate Download'; downloadBtn.disabled=false; return;}
+    }
+
+    resultArea.innerHTML=`
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <div class="text-sm text-gray-300">Download Ready</div>
+          <div class="mt-1 text-xs text-gray-400 break-words">${url}</div>
+        </div>
+        <div class="flex gap-2 sm:gap-4">
+          <a href="${resultUrl}" download class="px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm">Download</a>
+        </div>
+      </div>`;
+    resultArea.classList.remove('hidden');
+
+  }catch(err){console.error(err); alert('Error generating download.');}
+
+  downloadBtn.innerText='Generate Download';
+  downloadBtn.disabled=false;
+});
+
+// ⭐ Stars Animation ⭐
+const canvas=document.getElementById("stars");
+const ctx=canvas.getContext("2d");
+let w=canvas.width=innerWidth,h=canvas.height=innerHeight;
+const stars=[];const STAR_COUNT=250;
+function initStars(){for(let i=0;i<STAR_COUNT;i++){stars.push({x:Math.random()*w,y:Math.random()*h,radius:Math.random()*1.2+0.2,alpha:Math.random(),delta:Math.random()*0.02});}}
+function drawStars(){ctx.clearRect(0,0,w,h);for(let s of stars){ctx.beginPath();ctx.arc(s.x,s.y,s.radius,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${s.alpha})`;ctx.fill();s.alpha+=s.delta;if(s.alpha<=0||s.alpha>=1)s.delta*=-1;}requestAnimationFrame(drawStars);}
+window.addEventListener('resize',()=>{w=canvas.width=innerWidth; h=canvas.height=innerHeight;});
+initStars(); drawStars();
+</script>
+</body>
+</html>
